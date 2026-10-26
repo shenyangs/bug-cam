@@ -1,0 +1,89 @@
+{
+  "project": "BugCam",
+  "state": "PARTIAL",
+  "scenario": "Heuristic bounded local fixture exploration captures a real JavaScript pageerror, confirms it, and independently reproduces it with real screenshot and video evidence.",
+  "checks": [
+    {
+      "id": "typescript-and-production-build",
+      "passed": true,
+      "evidence": "artifacts/logs/build.log"
+    },
+    {
+      "id": "target-validation-8-unit-tests",
+      "passed": true,
+      "evidence": "artifacts/logs/test.log"
+    },
+    {
+      "id": "real-hunt-replay-and-api-boundaries-3-e2e-tests",
+      "passed": true,
+      "evidence": "artifacts/logs/e2e.log"
+    },
+    {
+      "id": "independent-demo-and-1440x810-fit",
+      "passed": true,
+      "evidence": "artifacts/logs/demo.log"
+    },
+    {
+      "id": "actual-scan-errors-and-confirmation",
+      "passed": true,
+      "evidence": "artifacts/hunts/1d0610ce-24f0-4c42-84e0-e94e91a3e09b/result.json"
+    },
+    {
+      "id": "fresh-context-same-error",
+      "passed": true,
+      "evidence": "artifacts/hunts/2d9ac413-701b-47f9-abc0-870949285858/result.json"
+    },
+    {
+      "id": "screenshot",
+      "passed": true,
+      "evidence": "artifacts/demo-crash.png"
+    },
+    {
+      "id": "real-screen-recording",
+      "passed": true,
+      "evidence": "artifacts/playwright/demo/demo-record-a-real-BugCam-hunt-and-replay/video.webm"
+    }
+  ],
+  "commands": [
+    {
+      "cmd": "npm run e2e",
+      "exitCode": 1
+    },
+    {
+      "cmd": "PLAYWRIGHT_BROWSERS_PATH=.browsers npx playwright install chromium",
+      "exitCode": 143
+    },
+    {
+      "cmd": "npm run e2e",
+      "exitCode": 1
+    },
+    {
+      "cmd": "npm run test",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run e2e",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run demo",
+      "exitCode": 0
+    }
+  ],
+  "liveModel": false,
+  "fixturesUsed": true,
+  "demoVideo": "artifacts/playwright/demo/demo-record-a-real-BugCam-hunt-and-replay/video.webm",
+  "limitations": [
+    "No model inference: deterministic heuristic exploration only; AI sprint status is PARTIAL.",
+    "Only the bundled intentionally buggy local fixture; no unknown production bugs or business-logic oracle.",
+    "Single-click controls with safe IDs, at most 8 controls, 30-second deadline plus cleanup; one active run.",
+    "In-memory replay lookup is lost on restart; artifact files persist and require manual retention cleanup.",
+    "Initial E2E lacked the matching browser; the final build pins Playwright 1.59.0 with Chromium 1217 reused read-only into the project. Optional full-browser download was stopped after slow progress.",
+    "Optional trace archive teardown timed out on Node 26. Trace is disabled; real screenshot and video verification pass. Prior failure logs remain under artifacts/logs.",
+    "Cross-platform and Node 22 execution not independently tested; final verification ran on macOS with Node 26.4.0."
+  ]
+}

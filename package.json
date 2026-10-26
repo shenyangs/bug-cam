@@ -13,17 +13,17 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "e2e": "playwright test",
-    "demo": "playwright test tests/demo.spec.ts",
+    "demo": "BUGCAM_DEMO=1 playwright test tests/demo.spec.ts",
     "check": "npm run build && npm run test && npm run e2e"
   },
   "dependencies": {
-    "react": "*",
-    "react-dom": "*",
     "express": "*",
-    "lucide-react": "*"
+    "lucide-react": "*",
+    "react": "*",
+    "react-dom": "*"
   },
   "devDependencies": {
-    "@playwright/test": "*",
+    "@playwright/test": "1.59.0",
     "@types/express": "*",
     "@types/node": "*",
     "@types/react": "*",
