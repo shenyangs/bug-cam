@@ -5,7 +5,7 @@ import { resolve, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 export const TARGET = 'http://127.0.0.1:5204/fixture/';
 export function validateTarget(target: unknown) {
-  if (target !== undefined && target !== TARGET) throw new Error('Only the bundled local fixture is allowed');
+  if (target !== undefined && target !== TARGET) throw new Error('仅允许扫描内置的本地故障示例页面');
   return TARGET;
 }
 export type Attempt = { label:string; locator:string; timestamp:string; errors:string[]; consoleErrors:string[]; failedRequests:string[]; stack:string; screenshot:string; video:string };
@@ -13,7 +13,7 @@ export type Run = { id:string; kind:'scan'|'reproduce'; state:'running'|'complet
 export const runs = new Map<string,Run>();
 let busy = false;
 export function startRun(kind:Run['kind'], source?:Run) {
-  if (busy) throw new Error('A browser run is already active');
+  if (busy) throw new Error('浏览器任务正在运行，请等待当前任务完成');
   busy = true;
   const run:Run = {id:randomUUID(), kind, state:'running', startedAt:new Date().toISOString(), attempts:[], sourceId:source?.id};
   runs.set(run.id,run);
@@ -53,7 +53,7 @@ async function execute(run:Run,source?:Run) {
   const deadline=setTimeout(()=>{expired=true; void browser?.close();},30_000);
   try {
     browser=await chromium.launch({headless:true,timeout:8000});
-    if(expired) throw new Error('30 second hunt deadline exceeded');
+    if(expired) throw new Error('扫描已超过 30 秒限制，请重新扫描');
     if(source?.issue) {
       const a=await attempt(browser,run,source.issue.locator,source.issue.label);
       run.attempts.push(a); run.issue=a;
@@ -63,7 +63,7 @@ async function execute(run:Run,source?:Run) {
       await context.route('**/*',r=>r.request().url().startsWith(TARGET)?r.continue():r.abort());
       const page=await context.newPage();
       await page.goto(TARGET,{timeout:3000});
-      const controls=await page.locator('button, a[href], input[type=button], input[type=submit]').evaluateAll(nodes=>nodes.filter(n=>(n as HTMLElement).offsetWidth>0 && (n as HTMLElement).offsetHeight>0).slice(0,8).map((n)=>({label:n.textContent?.trim() || 'Control',id:n.id})));
+      const controls=await page.locator('button, a[href], input[type=button], input[type=submit]').evaluateAll(nodes=>nodes.filter(n=>(n as HTMLElement).offsetWidth>0 && (n as HTMLElement).offsetHeight>0).slice(0,8).map((n)=>({label:n.textContent?.trim() || '控件',id:n.id})));
       await context.close();
       for(const c of controls) {
         if(!/^[a-zA-Z][\w-]*$/.test(c.id)) continue;
@@ -76,14 +76,14 @@ async function execute(run:Run,source?:Run) {
         }
       }
     }
-    if(expired) throw new Error('30 second hunt deadline exceeded');
-    run.state='complete';
-  } catch(e) {run.state='failed';run.message=expired?'30 second hunt deadline exceeded':(e as Error).message;}
+    if(expired) throw new Error('扫描已超过 30 秒限制，请重新扫描');
+  } catch(e) {run.state='failed';run.message=expired?'扫描已超过 30 秒限制，请重新扫描':`浏览器执行失败。请运行 npm run doctor 检查依赖与浏览器，然后重试。技术详情：${(e as Error).message}`;}
   finally {
     clearTimeout(deadline);
     await browser?.close().catch(()=>{});
     run.finishedAt=new Date().toISOString();
     await mkdir(resolve('artifacts/hunts',run.id),{recursive:true});
-    await writeFile(resolve('artifacts/hunts',run.id,'result.json'),JSON.stringify(run,null,2));
+    await writeFile(resolve('artifacts/hunts',run.id,'result.json'),JSON.stringify({...run,state:run.state === 'running' ? 'complete' : run.state},null,2));
+    if (run.state === 'running') run.state = 'complete';
   }
 }

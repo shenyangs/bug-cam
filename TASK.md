@@ -1,27 +1,35 @@
-# A04 — BugCam
+# BugCam 项目说明
 
-Build a browser crash hunter with ACTUAL autonomous bounded exploration and a REAL recorded repro, scoped to a bundled local demo app. Read ./AGENTS.md. One P0 only.
+## 目标与真实能力
 
-## Stack / constraints
-- Node + Playwright + React viewer. Own `fixtures/buggy-site` with at least one genuine JavaScript pageerror thrown by interacting with a buggy button. No remote domain scanner.
-- `/api/scan` launches isolated Chromium, visits only 127.0.0.1 fixture page, enumerates up to 8 visible clickable controls; for each, new context, click, collect `pageerror`, failed requests and console.error; enforce max 30 seconds. Capture error message, locator used, screenshot and video/trace. Stop on first reproducible issue.
-- `/api/reproduce` opens fresh context and replays the recorded minimal click sequence. Never claim to discover business logic bugs without an oracle.
+提供中文默认体验的「本地示例有界异常检测」：用户开始扫描后，由真实 Chromium 自主枚举并点击内置页面上的控件，记录 JavaScript 页面异常，在新上下文中确认，再由用户独立重放并查看截图与录像。
 
-## P0 happy path
-1. UI shows `Target: Local test site` and Start Hunt.
-2. Real browser clicks controls; timeline shows each attempted action. A deliberate code bug throws; UI turns red with exact browser error, real selector, steps.
-3. Reproduce button runs fresh browser and triggers same error. Display screenshot/video artifact and both timestamps.
+默认模式为**预置故障示例 + 启发式探索，未使用 AI 模型**。不需要 API Key，不宣称可以发现未知生产缺陷或业务逻辑错误。AI 冲刺交付状态为 PARTIAL，浏览器闭环是否通过以真实测试为准。
 
-## Must prove
-- E2E clicks Hunt, finds seeded bug, checks exact message, clicks Reproduce, verifies same error is observed on second independent run.
-- Unit test scan rejects `https://example.org` and user-provided remote URLs.
-- Demo test records visible browser run and artifact screenshot/video.
-- README says 'bounded local demo crash detection', not arbitrary production bug finding.
+## 核心约束
 
-## X hook
-'I gave a browser agent a buggy page. It clicked around, found a real crash, and recorded the repro.' Show live locator -> red stack -> second reproduction.
+- TypeScript、React、Vite、Express、Playwright；Web 4204，API 5204，仅监听 127.0.0.1。
+- 目标只接受 `http://127.0.0.1:5204/fixture/`，拒绝远程网站、任意本地文件和用户输入的替代地址。
+- 最多枚举 8 个可见控件，每个动作使用新的上下文；单次运行限时 30 秒，随后清理浏览器和保存证据。仅允许一项并发任务。
+- 捕获 `pageerror`、失败请求、`console.error`。只有独立上下文重复捕获相同页面异常才能报告确认异常。
+- `/api/reproduce` 在全新浏览器运行中重放最小单击序列。记录选择器、准确错误、时间戳、截图与 WebM 录像。
+- 不读取凭据或其他项目，不修改系统设置。浏览器及依赖缓存仅安装到本项目。
 
+## 默认操作
 
-Execute within this directory only. Run npm install, implement, then build/test/e2e/demo. Preserve real logs and status.json.
+1. 开始扫描：真实点击「预览笔记」「保存草稿」「导出报告」。
+2. 复现异常：验证「导出失败：报告数据未定义」在新运行中重复出现。
+3. 观看复现录像：检查真实错误调用栈、截图、录像和两次时间。
 
-This is an authorized independent sprint execution. Start implementing now, no confirmation. Do not spawn subagents. All writes limited to this app directory; use npm install --cache .npm-cache and keep .npm-cache ignored. Existing Playwright browsers may be read from ~/Library/Caches/ms-playwright; if install required use PLAYWRIGHT_BROWSERS_PATH inside this project. Install dependencies, replace starter tests with meaningful behavior tests, run build/test/e2e/demo and preserve actual logs, screenshot and video. Do not read user credentials or other project data. Missing model keys: runnable clearly labelled fixture and PARTIAL status. Add LICENSE. Verify and finish, not merely plan.
+## 中文与易用性验收
+
+- 界面、按钮、状态、错误、空态、帮助、可访问名称及正常后端提示以中文呈现；品牌和技术标识保留。
+- 提供首次三步引导、小屏布局、键盘跳转与可见焦点、忙碌禁用和可恢复失败提示。
+- `npm run setup` 跨平台安装锁定依赖与所需项目内浏览器；`npm run doctor` 用中文检查 Node、依赖、浏览器与端口，无无关 Key 要求。
+- README 中文说明环境、依赖用途、安装、准确访问地址、平台命令差异、失败恢复与诚实限制。
+
+## 必须真实验证
+
+实际执行 `npm run build`、`npm run test`、`npm run e2e`、`npm run demo`。测试保持真实错误文本、独立运行 ID/时间戳、三次操作、视频可播放、远程地址拒绝等断言，并增加中文小屏、键盘和失败恢复覆盖。验证 doctor 在缺依赖时友好报错。
+
+保留 `artifacts/` 下真实日志、中文截图和录像；禁止将凭据、缓存、日志和录像提交仓库。按照 AGENTS.md schema 更新 `status.json`，README 明确未验证项。MIT 法律文本保留原文。独立提交源码，由主对话复核后统一推送，不自行发布。

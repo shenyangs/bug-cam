@@ -1,47 +1,67 @@
 {
   "project": "BugCam",
   "state": "PARTIAL",
-  "scenario": "Heuristic bounded local fixture exploration captures a real JavaScript pageerror, confirms it, and independently reproduces it with real screenshot and video evidence.",
+  "scenario": "中文默认的本地故障示例：真实 Chromium 有界探索三个控件，捕获页面异常，在独立上下文确认，再通过独立运行复现并保存截图与录像。",
   "checks": [
     {
-      "id": "typescript-and-production-build",
+      "id": "中文版本类型检查与生产构建",
       "passed": true,
-      "evidence": "artifacts/logs/build.log"
+      "evidence": "artifacts/logs/build-zh.log"
     },
     {
-      "id": "target-validation-8-unit-tests",
+      "id": "10项单元测试",
       "passed": true,
-      "evidence": "artifacts/logs/test.log"
+      "evidence": "artifacts/logs/test-zh.log"
     },
     {
-      "id": "real-hunt-replay-and-api-boundaries-3-e2e-tests",
+      "id": "5项真实浏览器与中文小屏键盘及失败恢复测试",
       "passed": true,
-      "evidence": "artifacts/logs/e2e.log"
+      "evidence": "artifacts/logs/e2e-zh.log"
     },
     {
-      "id": "independent-demo-and-1440x810-fit",
+      "id": "独立演示及1440x810无溢出",
       "passed": true,
-      "evidence": "artifacts/logs/demo.log"
+      "evidence": "artifacts/logs/demo-zh.log"
     },
     {
-      "id": "actual-scan-errors-and-confirmation",
+      "id": "实际安装依赖并复用浏览器缓存",
       "passed": true,
-      "evidence": "artifacts/hunts/1d0610ce-24f0-4c42-84e0-e94e91a3e09b/result.json"
+      "evidence": "artifacts/logs/setup-zh.log"
     },
     {
-      "id": "fresh-context-same-error",
+      "id": "正常环境诊断",
       "passed": true,
-      "evidence": "artifacts/hunts/2d9ac413-701b-47f9-abc0-870949285858/result.json"
+      "evidence": "artifacts/logs/doctor-zh.log"
     },
     {
-      "id": "screenshot",
+      "id": "缺依赖诊断返回预期非零退出码",
+      "passed": true,
+      "evidence": "artifacts/logs/doctor-missing-zh.log"
+    },
+    {
+      "id": "中文桌面截图",
       "passed": true,
       "evidence": "artifacts/demo-crash.png"
     },
     {
-      "id": "real-screen-recording",
+      "id": "中文390像素小屏截图",
+      "passed": true,
+      "evidence": "artifacts/mobile-zh.png"
+    },
+    {
+      "id": "真实中文演示录像",
       "passed": true,
       "evidence": "artifacts/playwright/demo/demo-record-a-real-BugCam-hunt-and-replay/video.webm"
+    },
+    {
+      "id": "独立复现相同异常",
+      "passed": true,
+      "evidence": "artifacts/hunts/7957ec3d-3731-4190-bae7-a2cc4d3efa40/result.json"
+    },
+    {
+      "id": "真实三次操作及自动确认",
+      "passed": true,
+      "evidence": "artifacts/hunts/131e61cb-dffc-48b9-95c6-8119516b265e/result.json"
     }
   ],
   "commands": [
@@ -72,18 +92,55 @@
     {
       "cmd": "npm run demo",
       "exitCode": 0
+    },
+    {
+      "cmd": "npm run setup",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run doctor",
+      "exitCode": 0
+    },
+    {
+      "cmd": "node artifacts/doctor-missing/scripts/doctor.mjs（缺依赖，预期退出1）",
+      "exitCode": 1
+    },
+    {
+      "cmd": "npm run e2e（首次中文验证，完成状态时序问题）",
+      "exitCode": 1
+    },
+    {
+      "cmd": "npm run e2e（中文面板812像素溢出）",
+      "exitCode": 1
+    },
+    {
+      "cmd": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run test",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run e2e",
+      "exitCode": 0
+    },
+    {
+      "cmd": "npm run demo",
+      "exitCode": 0
     }
   ],
   "liveModel": false,
   "fixturesUsed": true,
   "demoVideo": "artifacts/playwright/demo/demo-record-a-real-BugCam-hunt-and-replay/video.webm",
   "limitations": [
-    "No model inference: deterministic heuristic exploration only; AI sprint status is PARTIAL.",
-    "Only the bundled intentionally buggy local fixture; no unknown production bugs or business-logic oracle.",
-    "Single-click controls with safe IDs, at most 8 controls, 30-second deadline plus cleanup; one active run.",
-    "In-memory replay lookup is lost on restart; artifact files persist and require manual retention cleanup.",
-    "Initial E2E lacked the matching browser; the final build pins Playwright 1.59.0 with Chromium 1217 reused read-only into the project. Optional full-browser download was stopped after slow progress.",
-    "Optional trace archive teardown timed out on Node 26. Trace is disabled; real screenshot and video verification pass. Prior failure logs remain under artifacts/logs.",
-    "Cross-platform and Node 22 execution not independently tested; final verification ran on macOS with Node 26.4.0."
+    "未调用模型：仅启发式探索，AI 冲刺状态保持 PARTIAL。",
+    "仅使用内置预置故障示例；不宣称发现未知生产缺陷或判断业务正确性。",
+    "最多探索8个带安全ID的单击控件，限时30秒另加清理时间；单任务并发。",
+    "内存重放索引重启后丢失，证据文件持久保留并需手动清理。",
+    "本机 macOS、Node 26.4.0 验证通过；空缓存完整下载、Windows、Linux 和 Node 22 未独立执行。",
+    "setup 实际执行 npm ci 并复用项目内匹配浏览器，未修改系统设置。",
+    "历史缺浏览器及 Node 26 可选 trace 收尾超时日志保留；trace 已关闭，截图和录像正常。",
+    "本轮首次 E2E 暴露完成状态过早发布及中文桌面溢出问题，修复后5项全过；原始失败日志保留。"
   ]
 }
