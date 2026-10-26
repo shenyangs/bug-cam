@@ -1,16 +1,14 @@
-# BugCam · 浏览器异常捕手
+# BugCam
 
-**让浏览器点出异常，把复现证据留下来。**
+一个浏览器故障回放台。把一次点击、报错时的画面和调用栈放在一起，再开一个浏览器确认问题是否还会出现。
 
-BugCam 是一个中文默认的「本地示例有界异常检测」工具：真实 Chromium 依次探索内置示例中的控件，捕获页面异常，再独立重放并保存截图、录像与准确时间。
+![BugCam 回放台：大画面展示真实故障现场，下方是可点选的操作时间线](docs/images/replay-workspace.png)
 
-默认是**预置故障示例（fixture）+ 启发式探索（heuristic），未使用 AI 模型**。不需要账号、模型服务或 API Key。示例故意包含一个缺陷；浏览器操作、异常、截图和录像全部真实产生。AI 冲刺状态为 **PARTIAL**，不宣称具有通用生产网站找 Bug 能力。
+适合开发者或测试同学演示“这个按钮是怎么出错的”。目前只能运行仓库里的 Parcel 示例：预览和保存正常，导出故意报错。它还不能拿来扫描你的生产网站，也没有调用 AI 模型。
 
-## 环境与安装
+## 启动
 
-需要 **Node.js `^22.12.0 || ^24.0.0 || >=26.0.0` 和 npm**：支持 22.12 起的 22.x、24.x，以及 26.0 起的版本；不支持 Node 23、25。需要能够运行 Playwright Chromium 的操作系统、可用的 4204 / 5204 端口。首次安装需要网络下载 npm 依赖、Chromium 无头浏览器与 FFmpeg 录像组件；不使用模型服务。
-
-进入克隆后的仓库目录，Windows PowerShell、macOS 和 Linux 均可执行：
+需要 npm 和 Node.js `^22.12.0 || ^24.0.0 || >=26.0.0`。Node 23、25 不受支持。进入本项目目录后运行：
 
 ```sh
 npm run setup
@@ -18,111 +16,50 @@ npm run doctor
 npm run dev
 ```
 
-`setup` 即使在没有 `node_modules` 时也可启动。它先运行 `npm ci --cache .npm-cache`，然后仅安装所需 Chromium 无头浏览器与录像组件到项目内 `.browsers`；已安装匹配版本会复用。脚本不会安装系统包、修改全局配置或浏览器设置。`doctor` 检查 Node 版本、直接依赖与锁文件、浏览器组件、实际 Chromium 启动、端口，并输出中文恢复指引。没有任何 Key 检查。
+打开 [127.0.0.1:4204](http://127.0.0.1:4204)。不需要账号或 API Key。停止服务时，在启动终端按 Ctrl+C。
 
-浏览器界面：**http://127.0.0.1:4204**
+`setup` 按锁文件安装依赖，再将 Chromium 无头浏览器和录像组件安装到项目内 `.browsers`，已有匹配版本会复用。npm 缓存在 `.npm-cache`。首次安装需要网络；脚本不会改全局配置或安装系统包。以上命令可在 macOS、Linux 和 Windows PowerShell 中使用，但目前只在 macOS 上实际验证过。
 
-API 健康检查：http://127.0.0.1:5204/api/health
+`doctor` 会检查 Node、依赖、浏览器能否启动，以及 4204 / 5204 端口。缺依赖或浏览器时重新运行 setup；若端口被自己启动的 BugCam 占用，先停止旧服务。Linux 缺少 Chromium 系统库时，需要自行准备支持 Playwright 的环境。
 
-内置示例：http://127.0.0.1:5204/fixture/
+应用不自动读取 `.env`。通常不需要设置环境变量；若要复用其他兼容浏览器缓存，可设置 `PLAYWRIGHT_BROWSERS_PATH`。macOS / Linux 使用 `export PLAYWRIGHT_BROWSERS_PATH=/路径`，PowerShell 使用 `$env:PLAYWRIGHT_BROWSERS_PATH = '路径'`。setup 始终向本项目安装。
 
-这是 localhost 本机访问服务，仅绑定 `127.0.0.1`。请使用上面的准确地址，不使用局域网 IP 或隧道。启动终端也会输出入口。停止服务请在启动终端按 **Ctrl+C**。
+## 看一次导出失败
 
-### 手动安装与系统差异
+点击 **开始扫描**。真实 Chromium 会依次操作「预览笔记」「保存草稿」「导出报告」，完成的步骤出现在下方。点击某个步骤，就能查看那次操作留下的截图。
 
-macOS / Linux：
+导出触发异常后，右侧显示「导出失败：报告数据未定义」。点击 **复现异常**，程序另开浏览器，重新点击导出并比对错误。成功时会显示独立复现结果和两次时间。
 
-```sh
-npm ci --cache .npm-cache
-PLAYWRIGHT_BROWSERS_PATH=.browsers npx playwright install chromium --only-shell
-npm run doctor
-npm run dev
-```
+![独立复现后的真实结果：现场截图、错误详情、调用栈和实际步骤时间线](docs/images/replay-details.png)
 
-Windows PowerShell：
+点击 **观看复现录像** 播放这次运行的视频；“显示截图”可以切回来。“收起详情”会把更多空间留给画面。手机上，时间线和错误详情排在画面下方；键盘 Tab 可找到“跳到开始扫描”。
 
-```powershell
-npm ci --cache .npm-cache
-$env:PLAYWRIGHT_BROWSERS_PATH = '.browsers'
-npx playwright install chromium --only-shell
-npm run doctor
-npm run dev
-```
+这两张图片均由实际运行的应用截图生成，保存在仓库中。示例中的故障是预置的，但操作、异常检测、截图和录像都来自本次浏览器执行。
 
-Windows CMD 设环境变量时使用 `set PLAYWRIGHT_BROWSERS_PATH=.browsers`，再执行安装命令。日常使用推荐跨平台的 `npm run setup`，无需手动设置环境变量；`npm run demo` 也通过 Node 脚本跨平台设置演示参数。Linux 若缺少系统共享库，需要用户自行准备 Playwright 支持的系统环境，本项目不会自动执行系统级安装。
+## 数据留在哪里
 
-`.env.example` 仅作说明，不需要复制；应用不自动读取 `.env`。运行时可用终端环境变量 `PLAYWRIGHT_BROWSERS_PATH` 指向已有兼容缓存，默认是项目内 `.browsers`。`setup` 始终只安装到本项目目录。如果此前覆盖过缓存变量，运行前请清除覆盖或指向正确的已安装路径。
+前端在 4204 端口，API 和内置页面在 5204 端口，只监听 `127.0.0.1`。健康检查是 [api/health](http://127.0.0.1:5204/api/health)，示例页面是 [fixture](http://127.0.0.1:5204/fixture/)。不要通过隧道把它暴露到公网。
 
-## 三步演示
+每次运行的截图、WebM 录像和 `result.json` 存在 `artifacts/hunts/<运行 ID>/`。重启后，内存里的运行索引会清空，需要重新扫描；文件仍在，可停止服务后手动清理。它不读取用户凭据，也不上传录像。
 
-1. **开始扫描**：真实浏览器先点击「预览笔记」「保存草稿」，再点击「导出报告」。日志逐项展示实际执行结果。
-2. **复现异常**：看到「导出失败：报告数据未定义」后点击。程序另起浏览器运行，在新上下文中重放 `#export`，核对相同错误，展示两次时间戳。
-3. **观看复现录像**：播放真实示例页面录像；也可切回截图或在新窗口打开录像。原始浏览器调用栈保持原样。
+扫描最多检查 8 个带安全 ID 的控件，只支持单击，限时 30 秒，另加浏览器关闭和保存证据的时间。同一时刻只能运行一个任务。只有另一个上下文捕获到相同页面异常才会确认问题；普通 console.error、请求失败或业务结果错误不算已确认缺陷。
 
-扫描阶段也会在第二个上下文中先确认候选异常。用户点击「复现异常」后进行的是另一轮独立验证，并非重播预制数据。首页包含操作引导；Tab 可聚焦「跳到开始扫描」，Enter 可开始操作，运行期间按钮禁用。手机宽度下内容按单列显示。
+## 开发与验证
 
-## 依赖说明
+前端是 React + TypeScript + Vite，本地 API 使用 Express，浏览器操作由 Playwright 1.59.0 执行。依赖的精确版本保留在 `package-lock.json`，请勿删除锁文件来处理安装问题。
 
-精确版本以 `package-lock.json` 为准，使用 `npm ci` 可按锁文件重建，勿用删除锁文件的方式处理安装问题。
-
-| 依赖 | 作用 |
-| --- | --- |
-| React、React DOM | 中文交互界面与状态展示 |
-| Express | 本地 API、内置示例和证据文件服务 |
-| lucide-react | 界面图标，不访问远程图标服务 |
-| TypeScript、相关 @types 包 | 类型检查和开发类型定义 |
-| Vite、@vitejs/plugin-react | 开发服务、代理与前端构建 |
-| tsx、concurrently | 运行 TypeScript 后端，同时启动前后端 |
-| @playwright/test **1.59.0** | 真实浏览器探索、端到端测试和演示录像 |
-| Vitest | 目标限制与诊断脚本单元测试 |
-| Chromium 无头浏览器 **1217** | Playwright 对应的隔离浏览器，独立下载到项目缓存 |
-| FFmpeg **1011** | Playwright 对应的 WebM 录像组件，独立安装 |
-
-无需 Python、Docker、全局 Playwright 或 API Key。脚本使用 Node 内置模块，安装诊断不会依赖未安装的第三方包。浏览器二进制是平台相关组件，不能直接把 macOS 缓存复制到 Windows 使用。
-
-## 故障恢复
-
-- **依赖缺失／与锁文件不一致**：运行 `npm run doctor` 查看提示，再运行 `npm run setup`。安装失败不会被报告为成功；检查网络后重试。
-- **找不到浏览器或录像组件**：运行 `npm run setup`，或按上述手动命令安装；确认运行时缓存变量与安装路径一致。
-- **4204 或 5204 已占用**：如果是自己已启动的 BugCam，回到原终端按 Ctrl+C；如果属于其他程序，由用户确认后关闭。本工具不强制杀进程，也不静默更换端口。测试前必须先停止开发服务。
-- **无法连接本地服务**：确认 `npm run dev` 终端仍运行，访问健康检查地址。再运行 doctor，恢复后点击开始／重新扫描。
-- **30 秒超时或本轮未复现**：查看中文提示和原始技术详情，重试扫描；未复现不会显示成功。仅有 console.error 或失败请求不算确认缺陷。
-- **旧运行无法重放**：重启 API 会清空内存索引，请重新扫描。旧证据文件仍在 `artifacts/hunts/`。
-- **磁盘空间**：停止服务后可手动清理旧 `artifacts/hunts/`。项目不自动清理证据，不提交证据或缓存到 Git。
-
-## 真实验证与证据
-
-先停止 `npm run dev`，测试会自动启动和关闭本地服务：
+停止开发服务后执行：
 
 ```sh
+npm run doctor
 npm run build
 npm run test
 npm run e2e
 npm run demo
-npm run doctor
 ```
 
-本轮实际结果：构建通过、10 项单元测试通过、5 项 E2E 通过、独立 demo 通过；setup 与正常 doctor 返回 0，缺依赖 doctor 按预期返回 1。
+测试检查实际的三次点击、准确错误、独立运行 ID 和时间、视频可播放、步骤切换、详情展开收起、网络失败提示，以及桌面和手机布局。demo 会重新拍摄 README 的两张图片，并在 `artifacts/playwright/demo/` 留下真实界面录像。
 
-验证包括精确中文错误、三次真实控件操作、自动确认、独立运行 ID 与不同时间戳、截图／视频字节、录像可播放、并发拒绝、远程目标及外部来源拒绝。另验证小屏无横向溢出、中文页面语言、键盘操作和网络失败恢复提示。网络失败测试主动中断测试请求，不会伪造成功记录。
+本轮结果与证据引用见 [status.json](status.json)。验证环境是 macOS、Node 26.4.0；Windows、Linux、Node 22/24 和空缓存完整下载未实测。Node 26 上可选 trace 压缩曾超时，目前关闭 trace，截图和视频照常保留。AI 冲刺状态仍为 PARTIAL，因为当前实现使用启发式规则，没有模型推理。
 
-证据保留在本机，不进入仓库：
-
-- `artifacts/logs/*-zh.log`：中文版本验证日志；`doctor-missing-zh.log`：缺依赖路径的真实 CLI 诊断。
-- `artifacts/demo-crash.png`、`artifacts/mobile-zh.png`：中文桌面与小屏截图。
-- `artifacts/playwright/demo/`、`artifacts/playwright/e2e/`：真实界面录像及截图。
-- `artifacts/hunts/<运行 ID>/result.json`：真实异常、截图和录像索引。
-- `status.json`：本轮真实结果、限制和证据引用。
-
-历史故障也保留：初版缺少匹配浏览器；后续 Node 26 上可选 trace 压缩收尾超时。已固定 Playwright 版本、使用匹配缓存，并关闭可选 trace 压缩；真实截图和录像仍保留。对应旧日志在 `artifacts/logs/e2e-initial-missing-browser.log` 和 `e2e-trace-teardown-timeout.log`。
-
-本轮中文验证曾发现扫描完成状态早于录像收尾、桌面面板超出 2 像素；已修复并重跑通过，失败日志保留在 `e2e-zh-initial-race.log` 和 `e2e-zh-layout-overflow.log`。
-
-## 范围与未验证项
-
-- 仅内置故障示例，最多 8 个带安全 ID 的可见控件，单击序列探索；不包含复杂表单、多步业务、登录或未知生产缺陷发现。
-- 单次运行限时 30 秒，另加浏览器关闭与证据写入；仅允许一个任务运行，浏览器请求限制到示例路径。
-- 最近 50 次运行索引在内存中，不是持久任务系统。页面异常是检测依据，没有业务正确性判断器。
-- 本机回环地址不等于多用户安全隔离；不要通过隧道对外开放。恶意本机进程不在威胁模型内。
-- 本轮使用 macOS、Node 26.4.0 和已有匹配浏览器缓存。`setup` 会实际执行锁定依赖安装并复用浏览器；**空缓存全量下载、Windows、Linux 和 Node 22 均未独立验证**。
-- 没有模型推理、遥测或用户凭据读取。MIT 许可证法律原文见 LICENSE。
+MIT 许可证见 [LICENSE](LICENSE)。

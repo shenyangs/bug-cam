@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
 test('record a real BugCam hunt and replay', async ({page})=>{
   await page.goto('/');
   await page.getByRole('button',{name:'开始扫描',exact:true}).click();
@@ -11,4 +12,15 @@ test('record a real BugCam hunt and replay', async ({page})=>{
   await page.getByRole('button',{name:'观看复现录像'}).click();
   await expect.poll(()=>page.locator('video').evaluate((v:HTMLVideoElement)=>v.readyState)).toBeGreaterThan(0);
   await page.waitForTimeout(2500);
+  await page.getByRole('button',{name:'显示截图',exact:true}).click();
+  await page.setViewportSize({width:1440,height:900});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
+  await expect.poll(()=>page.locator('.stage img').evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
+  await mkdir('docs/images',{recursive:true});
+  await page.screenshot({path:'docs/images/replay-details.png',fullPage:true});
+  await page.getByRole('button',{name:'收起详情'}).click();
+  await expect(page.getByRole('complementary',{name:'错误详情'})).toHaveCount(0);
+  await page.screenshot({path:'docs/images/replay-workspace.png',fullPage:true});
+  await page.getByRole('button',{name:'展开详情'}).click();
+  await expect(page.getByTestId('repro-result')).toBeVisible();
 });

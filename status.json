@@ -4,24 +4,24 @@
   "scenario": "中文默认的本地故障示例：真实 Chromium 有界探索三个控件，捕获页面异常，在独立上下文确认，再通过独立运行复现并保存截图与录像。",
   "checks": [
     {
-      "id": "中文版本类型检查与生产构建",
+      "id": "故障回放台类型检查与生产构建",
       "passed": true,
-      "evidence": "artifacts/logs/build-zh.log"
+      "evidence": "artifacts/logs/build-redesign.log"
     },
     {
       "id": "10项单元测试",
       "passed": true,
-      "evidence": "artifacts/logs/test-zh.log"
+      "evidence": "artifacts/logs/test-redesign.log"
     },
     {
-      "id": "5项真实浏览器与中文小屏键盘及失败恢复测试",
+      "id": "5项真实浏览器测试：步骤截图与录像、详情展开收起、1440及390宽度、键盘与失败恢复",
       "passed": true,
-      "evidence": "artifacts/logs/e2e-zh.log"
+      "evidence": "artifacts/logs/e2e-redesign.log"
     },
     {
       "id": "独立演示及1440x810无溢出",
       "passed": true,
-      "evidence": "artifacts/logs/demo-zh.log"
+      "evidence": "artifacts/logs/demo-redesign.log"
     },
     {
       "id": "实际安装依赖并复用浏览器缓存",
@@ -31,7 +31,7 @@
     {
       "id": "正常环境诊断",
       "passed": true,
-      "evidence": "artifacts/logs/doctor-zh.log"
+      "evidence": "artifacts/logs/doctor-redesign.log"
     },
     {
       "id": "缺依赖诊断返回预期非零退出码",
@@ -56,12 +56,42 @@
     {
       "id": "独立复现相同异常",
       "passed": true,
-      "evidence": "artifacts/hunts/7957ec3d-3731-4190-bae7-a2cc4d3efa40/result.json"
+      "evidence": "artifacts/hunts/394df8e3-d57b-464f-a513-81583bb28b00/result.json"
     },
     {
       "id": "真实三次操作及自动确认",
       "passed": true,
       "evidence": "artifacts/hunts/131e61cb-dffc-48b9-95c6-8119516b265e/result.json"
+    },
+    {
+      "id": "README真实回放台截图",
+      "passed": true,
+      "evidence": "docs/images/replay-workspace.png"
+    },
+    {
+      "id": "README独立复现与详情截图",
+      "passed": true,
+      "evidence": "docs/images/replay-details.png"
+    },
+    {
+      "id": "空状态",
+      "passed": true,
+      "evidence": "artifacts/redesign-empty.png"
+    },
+    {
+      "id": "运行状态",
+      "passed": true,
+      "evidence": "artifacts/redesign-loading.png"
+    },
+    {
+      "id": "失败恢复状态",
+      "passed": true,
+      "evidence": "artifacts/redesign-error.png"
+    },
+    {
+      "id": "键盘可见焦点",
+      "passed": true,
+      "evidence": "artifacts/redesign-keyboard.png"
     }
   ],
   "commands": [
@@ -128,6 +158,36 @@
     {
       "cmd": "npm run demo",
       "exitCode": 0
+    },
+    {
+      "cmd": "npm run doctor",
+      "exitCode": 0,
+      "evidence": "artifacts/logs/doctor-redesign.log",
+      "round": "故障回放台改版"
+    },
+    {
+      "cmd": "npm run build",
+      "exitCode": 0,
+      "evidence": "artifacts/logs/build-redesign.log",
+      "round": "故障回放台改版"
+    },
+    {
+      "cmd": "npm run test",
+      "exitCode": 0,
+      "evidence": "artifacts/logs/test-redesign.log",
+      "round": "故障回放台改版"
+    },
+    {
+      "cmd": "npm run e2e",
+      "exitCode": 0,
+      "evidence": "artifacts/logs/e2e-redesign.log",
+      "round": "故障回放台改版"
+    },
+    {
+      "cmd": "npm run demo",
+      "exitCode": 0,
+      "evidence": "artifacts/logs/demo-redesign.log",
+      "round": "故障回放台改版"
     }
   ],
   "liveModel": false,
@@ -138,9 +198,9 @@
     "仅使用内置预置故障示例；不宣称发现未知生产缺陷或判断业务正确性。",
     "最多探索8个带安全ID的单击控件，限时30秒另加清理时间；单任务并发。",
     "内存重放索引重启后丢失，证据文件持久保留并需手动清理。",
-    "本机 macOS、Node 26.4.0 验证通过；空缓存完整下载、Windows、Linux 和 Node 22 未独立执行。",
+    "本机 macOS、Node 26.4.0 验证通过；空缓存完整下载、Windows、Linux 和 Node 22/24 未独立执行。",
     "setup 实际执行 npm ci 并复用项目内匹配浏览器，未修改系统设置。",
     "历史缺浏览器及 Node 26 可选 trace 收尾超时日志保留；trace 已关闭，截图和录像正常。",
-    "本轮首次 E2E 暴露完成状态过早发布及中文桌面溢出问题，修复后5项全过；原始失败日志保留。"
+    "历史中文改版首次 E2E 暴露完成状态过早发布及中文桌面溢出问题，修复后5项全过；原始失败日志保留。"
   ]
 }
