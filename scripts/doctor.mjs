@@ -3,14 +3,15 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import net from 'node:net';
 export const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const supportedNodeRange = '^22.12.0 || ^24.0.0 || >=26.0.0';
 export function supportedNode(version = process.versions.node) {
   const [major, minor] = version.split('.').map(Number);
-  return major > 22 || (major === 22 && minor >= 12);
+  return (major === 22 && minor >= 12) || major === 24 || major >= 26;
 }
 export async function diagnose(root = projectRoot, checkPorts = true) {
   const checks = [];
   const add = (ok, message) => checks.push({ ok, message });
-  add(supportedNode(), `Node.js ${process.versions.node}：需要 22.12.0 或更高版本，建议使用受支持的 LTS 版本。`);
+  add(supportedNode(), `Node.js ${process.versions.node}：支持范围 ${supportedNodeRange}（不支持 Node 23、25）。`);
   if (!existsSync(resolve(root, 'package.json')) || !existsSync(resolve(root, 'package-lock.json'))) {
     add(false, '未找到项目清单或锁文件，请在完整的 BugCam 仓库中运行。');
     return checks;

@@ -3,11 +3,16 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { diagnose, supportedNode } from '../scripts/doctor.mjs';
 describe('中文安装诊断',()=>{
-  it('检查 Vite 所需 Node 最低版本',()=>{
+  it('检查锁定依赖所需 Node 版本范围',()=>{
     expect(supportedNode('22.11.0')).toBe(false);
     expect(supportedNode('20.19.0')).toBe(false);
     expect(supportedNode('22.12.0')).toBe(true);
     expect(supportedNode('24.0.0')).toBe(true);
+    expect(supportedNode('26.0.0')).toBe(true);
+    expect(supportedNode('23.0.0')).toBe(false);
+    expect(supportedNode('23.99.0')).toBe(false);
+    expect(supportedNode('25.0.0')).toBe(false);
+    expect(supportedNode('25.99.0')).toBe(false);
   });
   it('缺少依赖时给出中文恢复命令而非模块异常',async()=>{
     await mkdir('artifacts',{recursive:true});

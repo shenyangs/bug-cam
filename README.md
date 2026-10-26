@@ -8,7 +8,7 @@ BugCam 是一个中文默认的「本地示例有界异常检测」工具：真�
 
 ## 环境与安装
 
-需要 **Node.js 22.12.0 或更高版本和 npm**，建议使用受支持的 Node LTS 版本。需要能够运行 Playwright Chromium 的操作系统、可用的 4204 / 5204 端口。首次安装需要网络下载 npm 依赖、Chromium 无头浏览器与 FFmpeg 录像组件；不使用模型服务。
+需要 **Node.js `^22.12.0 || ^24.0.0 || >=26.0.0` 和 npm**：支持 22.12 起的 22.x、24.x，以及 26.0 起的版本；不支持 Node 23、25。需要能够运行 Playwright Chromium 的操作系统、可用的 4204 / 5204 端口。首次安装需要网络下载 npm 依赖、Chromium 无头浏览器与 FFmpeg 录像组件；不使用模型服务。
 
 进入克隆后的仓库目录，Windows PowerShell、macOS 和 Linux 均可执行：
 

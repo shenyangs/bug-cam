@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { projectRoot, supportedNode } from './doctor.mjs';
-if (!supportedNode()) { console.error('安装已停止：需要 Node.js 22.12.0 或更高版本。请自行安装受支持版本后重试；本脚本不会修改系统设置。'); process.exit(1); }
+import { projectRoot, supportedNode, supportedNodeRange } from './doctor.mjs';
+if (!supportedNode()) { console.error(`安装已停止：Node.js 支持范围 ${supportedNodeRange}（不支持 Node 23、25）。请自行安装受支持版本后重试；本脚本不会修改系统设置。`); process.exit(1); }
 const npmCli = process.env.npm_execpath;
 if (!npmCli) { console.error('请使用 npm run setup 启动安装。'); process.exit(1); }
 const env = { ...process.env, PLAYWRIGHT_BROWSERS_PATH: resolve(projectRoot, '.browsers'), npm_config_cache: resolve(projectRoot, '.npm-cache') };
